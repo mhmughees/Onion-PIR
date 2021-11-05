@@ -207,6 +207,112 @@ PirQuery pir_client::generate_query(uint64_t desiredIndex) {
     return result;
 }
 
+
+
+PirQuery pir_client::generate_query_combined(uint64_t desiredIndex) {
+
+    indices_ = compute_indices(desiredIndex, pir_params_.nvec);
+
+    //compute_inverse_scales();
+    GSWCiphertext packed_ct;
+    uint64_t dimension_size=FIRST_DIM;
+    int new_dimension_size=0;
+
+    int logsize;
+    int gap ;
+
+    int base_bits = pir_params_.plain_base;
+    int decomp_size = params_.plain_modulus().bit_count() / base_bits;
+    SecretKey sk= keygen_->secret_key();
+    auto pool = MemoryManager::GetPool(mm_prof_opt::FORCE_NEW);
+
+    vector<vector<Ciphertext> > result(2);
+    int N = params_.poly_modulus_degree();//4096
+
+    Plaintext pt(params_.poly_modulus_degree());
+
+    //handling first dimension first
+    for (uint32_t i = 0; i < 1; i++) {
+        uint32_t num_ptxts = ceil( (pir_params_.nvec[i] + 0.0) / N);//mostly 1
+
+        cout << "Client: index " << i+1  << "/ " << indices_.size() << " = " << indices_[i] << endl;
+
+        dimension_size= 2*pir_params_.nvec[i];// first dimension is always 64
+        logsize = ceil(log2(dimension_size));//8
+        gap = ceil(N / (1 << logsize));//16
+        // initialize result.
+
+
+        for (uint32_t j =0; j < num_ptxts; j++){
+            pt.set_zero();
+            if (indices_[i] > N*(j+1) || indices_[i] < N*j){
+
+            } else{
+                uint64_t real_index = indices_[i] - N*j;// N*j =0 mostly
+                pt[real_index*gap] = 1;
+            }
+            //Ciphertext dest;
+
+            packed_ct.clear();
+            poc_plain_gsw_enc128_combined(decomp_size, base_bits, newcontext_, sk, packed_ct, pt, pool, pir_params_.nvec[i], gap);
+
+
+
+
+            result[i]=(packed_ct);
+
+//            Plaintext ppt;
+//            decryptor_->decrypt(result[i][2],ppt);
+//            cout<<ppt.to_string()<<endl;
+        }
+    }
+
+    int previous_dimension_size=0;
+    new_dimension_size=0;
+    vector<uint64_t> new_indices;
+    //compressing all the remaining dimensions into one dimension of size equal to sum of remaining dimensions
+
+    if(indices_.size()>1) {
+
+        for (uint32_t i = 1; i < indices_.size(); i++) {
+
+            cout << "Client: index " << i+1  << "/ " << indices_.size() << " = " << indices_[i] << endl;
+
+            dimension_size = pir_params_.nvec[i];
+            uint64_t real_index = indices_[i]+new_dimension_size ;
+            new_indices.push_back(real_index);
+            //previous_dimension_size=dimension_size;
+            new_dimension_size=new_dimension_size+dimension_size;
+        }
+
+
+        pt.set_zero();
+        dimension_size= new_dimension_size;
+        logsize = ceil(log2(dimension_size*pir_params_.gsw_decomp_size));
+        gap = ceil(N / (1 << logsize));
+
+        for (uint32_t i = 0; i < new_indices.size(); i++) {
+            uint32_t num_ptxts = ceil((pir_params_.nvec[i] + 0.0) / N);
+
+
+            uint64_t real_index = new_indices[i];
+            pt[real_index*gap] = 1;
+
+        }
+
+        vector<Ciphertext> half_gsw_ciphertext;
+
+        base_bits = pir_params_.gsw_base;
+        decomp_size = pir_params_.gsw_decomp_size;
+        poc_half_gsw_enc128_combined(decomp_size, base_bits, newcontext_, sk, half_gsw_ciphertext, pt, pool, (1 << logsize), gap, dimension_size);
+
+        result[1]=(half_gsw_ciphertext);
+
+    }
+
+    return result;
+}
+
 void pir_client::decrypt_results(std::vector<seal::Ciphertext> reply) {
     for (int i=0; i< reply.size();i++){
         Plaintext ppt;

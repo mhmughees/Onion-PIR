@@ -407,6 +407,69 @@ void poc_plain_gsw_enc128(const uint64_t decomp_size, const uint64_t base_bit, s
 }
 
 
+void poc_plain_gsw_enc128_combined(const uint64_t decomp_size, const uint64_t base_bit, shared_ptr<SEALContext> context,
+                          const SecretKey sk, vector<Ciphertext> &gsw_ciphertext, Plaintext gsw_plain,
+                          seal::util::MemoryPool &pool, uint64_t inv, uint64_t gap) {
+
+    Encryptor encryptor(context, sk);
+    Decryptor decryptor(context, sk);
+    const auto &context_data = context->first_context_data();
+    auto &parms = context_data->parms();
+    auto &coeff_modulus = parms.coeff_modulus();
+    auto &plain_modulus = parms.plain_modulus();
+
+    //size_t ct_poly_count = context_data->parms().coeff_modulus().size();/// find good way of getting it
+    int total_bits;
+    uint64_t r_l = decomp_size;
+    total_bits = (plain_modulus.bit_count()); // in normal gsw we use total bits of q, here total bits of t is required
+    auto ptr(allocate_uint(2, pool));
+    auto ptr2(allocate_uint(2, pool));
+    Plaintext   ppt(gsw_plain.coeff_count());
+    ppt.set_zero();
+
+    uint64_t h=1;
+    for (int p = 0; p < r_l; p++) {
+
+        const int shift_amount = ((total_bits) - ((p + 1) * base_bit));
+        ptr2[0] = 0;
+        ptr2[1] = 0;
+        ptr[0] = 1;
+        ptr[1] = 0;
+        util::left_shift_uint128(ptr.get(), shift_amount, ptr2.get());
+        h = seal::util::barrett_reduce_128(ptr2.get(), plain_modulus.value());
+        if(inv>0){
+            uint64_t tt;
+            util::try_invert_uint_mod(2* inv, parms.plain_modulus().value(),tt);
+            h = util::multiply_uint_uint_mod(h ,tt , parms.plain_modulus());
+        }
+
+        uint64_t  total_dim_with_gap = inv*gap;
+        for (int j=0;j<total_dim_with_gap;j++){
+
+            if(gsw_plain.data()[j]==1) {
+
+                ppt[j+p*(total_dim_with_gap)] = h;
+
+            }
+
+
+        }
+
+
+
+
+    }
+    Ciphertext res;
+    encryptor.encrypt_symmetric(ppt,res);
+    //encryptor.encrypt_zero_symmetric(res);
+    //set_ciphertext(res, context);
+    //poc_multiply_add_plain_without_scaling_variant(gsw_plain, *context->first_context_data(), shift_amount,res.data(0), pool, inv);
+    gsw_ciphertext.push_back(res);
+
+
+
+}
+
 
 
 void poc_expand_flat(vector<GSWCiphertext>::iterator &result, vector<Ciphertext> &packed_swap_bits,
@@ -446,6 +509,48 @@ void poc_expand_flat(vector<GSWCiphertext>::iterator &result, vector<Ciphertext>
 
 }
 
+void poc_expand_flat_combined(vector<GSWCiphertext>::iterator &result, vector<Ciphertext> &packed_swap_bits,
+                     shared_ptr<SEALContext> context, int size, seal::GaloisKeys &galkey ) {
+
+
+    const auto &context_data2 = context->first_context_data();
+    auto &parms2 = context_data2->parms();
+    auto &coeff_modulus = parms2.coeff_modulus();
+    size_t coeff_modulus_size = coeff_modulus.size();
+    auto small_ntt_tables = context_data2->small_ntt_tables();
+    size_t coeff_count = parms2.poly_modulus_degree();
+    auto pool = MemoryManager::GetPool(mm_prof_opt::FORCE_NEW);
+    int logN = seal::util::get_power_of_two(coeff_count);
+    vector<Ciphertext> expanded_ciphers(coeff_count);
+
+    //outloop is from 0-to-(l-1)
+
+
+    assert(packed_swap_bits.size()==1);
+        auto rlwe_start = std::chrono::high_resolution_clock::now();
+        expanded_ciphers = poc_rlwe_expand(packed_swap_bits[0], context, galkey, 2* size);
+        auto rlwe_end = std::chrono::high_resolution_clock::now();
+
+
+    for (int i = 0; i < 2; i++) {
+
+        //components of first dimension
+        vector<uint64_t *> rlwe_decom;
+        for (int j = 0; j < size; j++) {
+            ///put jth expanded ct in ith idx slot  of jt gswct
+            result[j][i] = expanded_ciphers[j+i*size];
+
+
+        }
+
+
+
+        //cout <<"---rlwe---"<< duration_cast<std::chrono::milliseconds >(rlwe_end - rlwe_start).count() <<"ms"<< endl;
+
+    }
+
+
+}
 
 void poc_rlwe_expand_threaded(Ciphertext packedquery, shared_ptr<SEALContext> context, seal::GaloisKeys galkey, uint64_t size, vector<Ciphertext> &result) {
     /// this function return size  vector of RLWE ciphertexts
@@ -893,7 +998,6 @@ void poc_nfllib_external_product(vector<Ciphertext> &gsw_enc, vector<uint64_t *>
     //assert(rlwe_expansion.size() == encrypted1_size * l);
 
 
-    int duration = 0;
 
     std::uint64_t *result;
     Plaintext pt_tmp;
@@ -922,7 +1026,7 @@ void poc_nfllib_external_product(vector<Ciphertext> &gsw_enc, vector<uint64_t *>
             uint64_t *encrypted_rlwe_ptr = rlwe_expansion[k];
             result = (std::uint64_t *) calloc((coeff_count * coeff_mod_count), sizeof(uint64_t));
 
-
+            auto start = std::chrono::steady_clock::now();
             poly_nfllib_prod_with_no_ntt(encrypted_gsw_ptr, encrypted_rlwe_ptr, result, coeff_count, coeff_mod_count);
 
 
@@ -930,10 +1034,13 @@ void poc_nfllib_external_product(vector<Ciphertext> &gsw_enc, vector<uint64_t *>
             //poly_nfllib_mul_preprocessed(encrypted_gsw_ptr, encrypted_rlwe_ptr, result, coeff_count, coeff_mod_count);
 
 
-            auto start = std::chrono::steady_clock::now();
+
             poly_nfllib_add(result,res_ct.data(j),res_ct.data(j));
+
             auto end = std::chrono::steady_clock::now();
             int duration= duration_cast<std::chrono::microseconds >(end - start).count();
+            //cout<<"external~"<< duration<<endl;
+
             //cout<<"myduration="<<duration<<endl;
 //            for (size_t i = 0; i < coeff_mod_count; i++) {
 //
@@ -970,7 +1077,6 @@ void poc_nfllib_external_product(vector<Ciphertext> &gsw_enc, vector<uint64_t *>
 
 
     }
-
 
 
 
@@ -1142,7 +1248,7 @@ void poly_nfllib_prod_with_no_ntt(std::uint64_t *p1, std::uint64_t *p2, std::uin
 //    free_aligned(1, resc);
 
 
-    //std::cout << "Time per polynomial NTT: " << get_time_us(start, end, 1) << " us" << std::endl;
+    //std::cout << "Time per polynomial NTT: " << duration_cast<microseconds>(start - end).count() << " us" << std::endl;
 
 }
 
@@ -1246,6 +1352,94 @@ void poc_half_gsw_enc128(const uint64_t l, const uint64_t base_bit, shared_ptr<S
 
 
 }
+
+void poc_half_gsw_enc128_combined(const uint64_t l, const uint64_t base_bit, shared_ptr<SEALContext> context, const SecretKey sk,
+                         vector<Ciphertext> &gsw_ciphertext, Plaintext gsw_plain, seal::util::MemoryPool &pool,
+                         uint64_t total_expand_size, uint64_t gap, uint64_t dimension_size) {
+
+    Encryptor encryptor(context, sk);
+    Decryptor decryptor(context, sk);
+    const auto &context_data = context->first_context_data();
+    auto &parms = context_data->parms();
+    auto &coeff_modulus = parms.coeff_modulus();
+
+    Ciphertext res;
+    encryptor.encrypt_zero_symmetric(res);
+    //size_t ct_poly_count = context_data->parms().coeff_modulus().size();/// find good way of getting it
+    int total_bits;
+    uint64_t r_l = l;
+    total_bits = (context_data->total_coeff_modulus_bit_count());
+    for (int p = 0; p < r_l; p++) {
+        const int shift_amount = ((total_bits) - ((p + 1) * base_bit));
+
+        //set_ciphertext(res, context);
+        mymultiply_add_plain_without_scaling_variant_combined(gsw_plain, *context->first_context_data(), shift_amount,
+                                                     res.data(0), pool, total_expand_size,  gap,  dimension_size, p);
+
+    }
+    gsw_ciphertext.push_back(res);
+}
+
+void mymultiply_add_plain_without_scaling_variant_combined(const Plaintext &plain, const SEALContext::ContextData &context_data,
+                                                  const int shift_amount, uint64_t *destination,
+                                                  seal::util::MemoryPool &pool, uint64_t total_expand_size,
+                                                  uint64_t gap, uint64_t dimension_size,
+                                                  uint64_t curr_component) {
+    auto &parms = context_data.parms();
+    size_t coeff_count = parms.poly_modulus_degree();
+    size_t plain_coeff_count = plain.coeff_count();
+    auto &coeff_modulus = parms.coeff_modulus();
+    size_t coeff_mod_count = coeff_modulus.size();
+    auto plain_modulus = context_data.parms().plain_modulus();
+    auto coeff_div_plain_modulus = context_data.coeff_div_plain_modulus();
+    uint64_t h;
+
+
+    //cout<< shift_amount << endl;
+
+    uint64_t  total_dim_with_gap = dimension_size*gap;
+
+    for (size_t i = 0; i < total_dim_with_gap; i++) {
+        // Add to ciphertext: h * m
+        for (size_t j = 0; j < coeff_mod_count; j++) {
+            //init empty 128 bit integers
+            auto ptr(allocate_uint(coeff_mod_count, pool));
+            auto ptr2(allocate_uint(coeff_mod_count, pool));
+            auto ptr3(allocate_uint(coeff_mod_count, pool));
+            //set 1 in lsb (it will be used for bit shifts)
+
+            uint64_t poly_inv;
+            uint64_t plain_coeff;
+            if (total_expand_size > 0) {
+                seal::util::try_invert_uint_mod(total_expand_size, coeff_modulus[j], poly_inv);
+                plain_coeff = seal::util::multiply_uint_uint_mod(plain.data()[i], poly_inv, coeff_modulus[j]);
+
+            } else {
+                plain_coeff = plain.data()[i];
+            }
+
+
+            ptr2[0] = 0;
+            ptr2[1] = 0;
+            ptr[0] = 1;
+            ptr[1] = 0;
+            //use 128 bit implementation for left shifts 1<<shiftamount
+            util::left_shift_uint128(ptr.get(), shift_amount, ptr2.get());
+            h = seal::util::barrett_reduce_128(ptr2.get(), coeff_modulus[j]);
+
+            //barret reduction is used for converting 128 bit interger to mod q1, q2 where q1, q2 are max 64 bits
+
+            h = seal::util::multiply_uint_uint_mod(h, plain_coeff, coeff_modulus[j]);
+
+            uint64_t index= i+ curr_component*(total_dim_with_gap) + (j * coeff_count);
+            destination[index] = seal::util::add_uint_uint_mod(
+                    destination[index], h, coeff_modulus[j]);
+        }
+    }
+
+}
+
+
 
 void mymultiply_add_plain_without_scaling_variant(const Plaintext &plain, const SEALContext::ContextData &context_data,
                                                   const int shift_amount, uint64_t *destination,
@@ -1373,6 +1567,71 @@ void thread_server_expand(vector<GSWCiphertext>::iterator &result, vector<Cipher
 
             rlwe_decom.clear();
             rwle_decompositions(expanded_ciphers[j], context, lsk, bsk, rlwe_decom);
+
+
+            poc_nfllib_ntt_rlwe_decomp(rlwe_decom);
+
+
+            res_ct.resize(context, context->first_context_data()->parms_id(), 2);
+            poc_nfllib_external_product(sk_gsw_ciphertext2, rlwe_decom, context, lsk, res_ct);
+            for (auto p : rlwe_decom) {
+                free(p);
+            }
+
+            poc_nfllib_intt_ct(res_ct,context);
+            result[j][i + l] = res_ct;
+        }
+
+
+
+    }
+    auto rlwe_end = std::chrono::high_resolution_clock::now();
+    duration = duration+ duration_cast<std::chrono::milliseconds >(rlwe_end - rlwe_start).count();
+    cout <<"GSW exansion time="<< duration <<" ms"<< endl;
+
+
+
+}
+
+
+void gsw_server_expand_combined(vector<GSWCiphertext>::iterator &result, vector<Ciphertext> packed_swap_bits,
+                          shared_ptr<SEALContext> context, int begin, int end, int total_dim_size, seal::GaloisKeys galkey,
+                          const int l, const int base_bit,const int lsk, const int bsk, vector<Ciphertext> sk_gsw_ciphertext2,
+                          uint64_t total_expand_size) {
+
+    const auto &context_data2 = context->first_context_data();
+    auto &parms2 = context_data2->parms();
+    auto &coeff_modulus = parms2.coeff_modulus();
+    size_t coeff_modulus_size = coeff_modulus.size();
+    auto small_ntt_tables = context_data2->small_ntt_tables();
+    size_t coeff_count = parms2.poly_modulus_degree();
+    auto pool = MemoryManager::GetPool(mm_prof_opt::FORCE_NEW);
+
+
+
+    int logN = seal::util::get_power_of_two(coeff_count);
+
+    vector<Ciphertext> expanded_ciphers(coeff_count);
+    int duration=0;
+
+    expanded_ciphers = poc_rlwe_expand(packed_swap_bits[0], context, galkey, total_expand_size);
+
+    auto rlwe_start = std::chrono::high_resolution_clock::now();
+    for (int i = begin; i < end; i++) {
+
+        //expanded_ciphers = rlweExpand(packed_swap_bits[i], context, galkey, size);
+        //expanded_ciphers = poc_rlwe_expand(packed_swap_bits[i], context, galkey, size);
+
+
+        vector<uint64_t *> rlwe_decom;
+
+        for (int j = 0; j < total_dim_size; j++) {
+
+            result[j][i] = expanded_ciphers[j + i*total_dim_size];
+            Ciphertext res_ct;
+
+            rlwe_decom.clear();
+            rwle_decompositions(expanded_ciphers[j+ i*total_dim_size], context, lsk, bsk, rlwe_decom);
 
 
             poc_nfllib_ntt_rlwe_decomp(rlwe_decom);

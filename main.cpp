@@ -972,7 +972,10 @@ int main(){
 
     // offset in FV plaintext
     auto time_query_s = high_resolution_clock::now();
-    PirQuery query = client.generate_query(index);
+    PirQuery query = client.generate_query_combined(index);
+
+    cout<<"query size ="<< query.size()<< endl;
+
     auto time_query_e = high_resolution_clock::now();
     auto time_query_us = duration_cast<microseconds>(time_query_e - time_query_s).count();
     cout << "Main: query generated" << endl;
@@ -984,7 +987,7 @@ int main(){
     server.set_enc_sk(enc_sk);
 
     auto time_server_s = high_resolution_clock::now();
-    PirReply reply = server.generate_reply(query, 0, sk);
+    PirReply reply = server.generate_reply_combined(query, 0, sk);
     auto time_server_e = high_resolution_clock::now();
     auto time_server_us = duration_cast<microseconds>(time_server_e - time_server_s).count();
 

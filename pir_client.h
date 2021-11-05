@@ -18,6 +18,8 @@ public:
     GaloisKeys generate_galois_keys();
     PirQuery generate_query(std::uint64_t desiredIndex);
 
+    PirQuery generate_query_combined(std::uint64_t desiredIndex);
+
     PirQuery generate_perm_query(std::uint64_t desiredIndex);
     void compute_inverse_scales();
     // Index and offset of an element in an FV plaintext

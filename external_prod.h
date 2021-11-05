@@ -72,6 +72,10 @@ void poc_plain_gsw_enc128(const uint64_t decomp_size, const uint64_t base_bit, s
                           const SecretKey sk, vector<Ciphertext> &gsw_ciphertext, Plaintext gsw_plain,
                           seal::util::MemoryPool &pool, uint64_t inv);
 
+void poc_plain_gsw_enc128_combined(const uint64_t decomp_size, const uint64_t base_bit, shared_ptr<SEALContext> context,
+                          const SecretKey sk, vector<Ciphertext> &gsw_ciphertext, Plaintext gsw_plain,
+                          seal::util::MemoryPool &pool, uint64_t inv, uint64_t gap);
+
 vector<Ciphertext> poc_rlwe_expand(Ciphertext packedquery, shared_ptr<SEALContext> context, seal::GaloisKeys galkey, uint64_t size);
 
 void poc_rlwe_expand_threaded(Ciphertext packedquery, shared_ptr<SEALContext> context, seal::GaloisKeys galkey, uint64_t size, vector<Ciphertext> &result);
@@ -83,6 +87,8 @@ void poc_expand_flat(vector<GSWCiphertext>::iterator &result, vector<Ciphertext>
                      shared_ptr<SEALContext> context, int size, seal::GaloisKeys &galkey);
 
 
+void poc_expand_flat_combined(vector<GSWCiphertext>::iterator &result, vector<Ciphertext> &packed_swap_bits,
+                     shared_ptr<SEALContext> context, int size, seal::GaloisKeys &galkey);
 
 
 
@@ -123,12 +129,24 @@ void poc_half_gsw_enc128(const uint64_t l, const uint64_t base_bit, shared_ptr<S
                          const SecretKey sk, vector<Ciphertext> &gsw_ciphertext, Plaintext gsw_plain,
                          seal::util::MemoryPool &pool, uint64_t inv);
 
+void poc_half_gsw_enc128_combined(const uint64_t l, const uint64_t base_bit, shared_ptr<SEALContext> context,
+                         const SecretKey sk, vector<Ciphertext> &gsw_ciphertext, Plaintext gsw_plain,
+                         seal::util::MemoryPool &pool, uint64_t total_expand_size, uint64_t gap, uint64_t dimension_size);
+
 void mymultiply_add_plain_without_scaling_variant(
         const Plaintext &plain,
         const SEALContext::ContextData &context_data,
         const int shift_amount,
         uint64_t *destination, seal::util::MemoryPool &pool, uint64_t inv = 0
 
+);
+
+void mymultiply_add_plain_without_scaling_variant_combined(
+        const Plaintext &plain,
+        const SEALContext::ContextData &context_data,
+        const int shift_amount,
+        uint64_t *destination, seal::util::MemoryPool &pool, uint64_t total_expand_size, uint64_t gap, uint64_t dimension_size
+        , uint64_t curr_component
 );
 
 void poc_gsw_enc128_sk(const uint64_t l, const uint64_t base_bit, shared_ptr<SEALContext> context,
@@ -138,6 +156,11 @@ void poc_gsw_enc128_sk(const uint64_t l, const uint64_t base_bit, shared_ptr<SEA
 void thread_server_expand(vector<GSWCiphertext>::iterator &result, vector<Ciphertext> packed_swap_bits,
                           shared_ptr<SEALContext> context, int begin, int end, int size, seal::GaloisKeys galkey,
                           const int l, const int base_bit, const int lsk, const int bsk,vector<Ciphertext> sk_gsw_ciphertext2);
+
+void gsw_server_expand_combined(vector<GSWCiphertext>::iterator &result, vector<Ciphertext> packed_swap_bits,
+                                                                shared_ptr<SEALContext> context, int begin, int end, int total_dim_size, seal::GaloisKeys galkey,
+                                                                const int l, const int base_bit,const int lsk, const int bsk, vector<Ciphertext> sk_gsw_ciphertext2,
+                                                                uint64_t total_expand_size);
 void mymultiply_add_plain_without_scaling_variant_sk(
         const Plaintext &plain,
         const SEALContext::ContextData &context_data,
