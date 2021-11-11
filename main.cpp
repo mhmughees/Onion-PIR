@@ -983,9 +983,6 @@ int main(){
     //client.test_query_expansion( query,  galois_keys);
     SecretKey sk = client.get_decryptor();
 
-    GSWCiphertext enc_sk=client.get_enc_sk();
-    server.set_enc_sk(enc_sk);
-
     auto time_server_s = high_resolution_clock::now();
     PirReply reply = server.generate_reply_combined(query, 0, sk);
     auto time_server_e = high_resolution_clock::now();
