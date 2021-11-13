@@ -25,7 +25,7 @@ OnionPIR scheme utilizes recent advances in somewhat homomorphic encryption (SHE
 - And then install [NFLlib](https://github.com/micciancio/NFLlib) 
 - Make sure these libraries are properly installed in `/usr/local/lib`  and `/usr/local/include`
 - Then compile this code using `cmake` with these cmake options `-DCMAKE_BUILD_TYPE=Release -DNTT_AVX2=ON -DSEAL_USE_ZLIB=OFF  -DSEAL_USE_MSGSL=OFF`
-- Then run ``make` in the same folder
+- Then run `make` in the same folder
 - Then just run `./onionpir`. This file is your compiled file that should be in the same folder where you run make.
 
 ## PIR Library
