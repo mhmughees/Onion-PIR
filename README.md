@@ -11,7 +11,7 @@ This is a codebase of OnionPIR which is the state-of-art single server PIR schem
 # OnionPIR
 This repository contains code for [OnionPIR: Response Efficient Single-Server PIR](https://eprint.iacr.org/2021/1081) 
 
-OnionPIR scheme utilizes recent advances in somewhat homomorphic encryption (SHE) and carefully composes two lattice-based SHE schemes and homomorphic operations to control the noise growth and response size. OnionPIR achieves a response overhead of just 4.2x over the insecure baseline, in contrast to the 100x response overhead of state-of-the-art schemes.
+OnionPIR scheme utilizes recent advances in somewhat homomorphic encryption (SHE) and carefully composes two lattice-based SHE schemes and homomorphic operations to control the noise growth and response size. OnionPIR achieves a response overhead of just 4.2x over the insecure baseline.
 
 ## Implementation details
 
@@ -36,3 +36,7 @@ OnionPIR scheme utilizes recent advances in somewhat homomorphic encryption (SHE
 - `Server.preprocess_database:` Performs decomposition and NTT on the database and store database in NTTes form.  
 - `Client.generate_query_combined:` Generates query for client index.
 - `Server.generate_reply_combined:` Evaluates PIR query over database using client's encrypted query. 
+
+## Note for compiling on MacOS
+
+For Macos change your c++ compiler to 
