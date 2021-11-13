@@ -13,12 +13,12 @@ This repository contains code for [OnionPIR: Response Efficient Single-Server PI
 
 OnionPIR scheme utilizes recent advances in somewhat homomorphic encryption (SHE) and carefully composes two lattice-based SHE schemes and homomorphic operations to control the noise growth and response size. OnionPIR achieves a response overhead of just 4.2x over the insecure baseline.
 
-## Implementation details
+<!-- ## Implementation details
 
 - Our implementation is based on Microsoft Seal and NFLlib. Specifically, we have utilized CRT variant of **BFV** scheme that is implemented in Microsoft Seal. Due to CRT, our implementation could handle coefficient modulus of 124 bits. 
 - We have implemented **RGSW** encryption schemes within Microsoft Seal from scratch and only used few helper functions to manage polynomials. 
 - Even thought Microsoft Seal provides NTT based polynomial multiplications which has a complexity of *O(n log n)*. But we found Microsoft Seal's implementation of polynomial multiplications at least 3x slower than similar libraries such as TFHE. Therefore, we further integrated **NFLlib** polynomial mutiplications within Microsoft seal. **NFLlib** is an efficient C++ library specialized in polynomial rings operations. It uses several programming optimization techniques (SSE and AVX2 specializations) to provide efficient polynomial operations. 
-
+ -->
 ## Compilation
 
 - First install [Microsoft Seal version 3.5.1](https://github.com/microsoft/SEAL/tree/3.5.1) 
@@ -37,6 +37,4 @@ OnionPIR scheme utilizes recent advances in somewhat homomorphic encryption (SHE
 - `Client.generate_query_combined:` Generates query for client index.
 - `Server.generate_reply_combined:` Evaluates PIR query over database using client's encrypted query. 
 
-## Note for compiling on MacOS
-
-For Macos change your c++ compiler to 
+ 
