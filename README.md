@@ -23,9 +23,10 @@ OnionPIR scheme utilizes recent advances in somewhat homomorphic encryption (SHE
 
 - First install [Microsoft Seal version 3.5.1](https://github.com/microsoft/SEAL/tree/3.5.1) 
 - And then install [NFLlib](https://github.com/micciancio/NFLlib) 
-- Make sure these libraries are properly installed in `/usr/local/lib` 
-- Then compile this code using `cmake` with these cmake options `-DCMAKE_BUILD_TYPE=Release -DNFL_OPTIMIZED=ON -DSEAL_USE_ZLIB=OFF  -DSEAL_USE_MSGSL=OFF`
-- Then just run `./cmake-build-debug/external_prod ` this will run `test_external_prod` example given in `main.cpp` file
+- Make sure these libraries are properly installed in `/usr/local/lib`  and `/usr/local/include`
+- Then compile this code using `cmake` with these cmake options `-DCMAKE_BUILD_TYPE=Release -DNTT_AVX2=ON -DSEAL_USE_ZLIB=OFF  -DSEAL_USE_MSGSL=OFF`
+- Then run ``make` in the same folder
+- Then just run `./onionpir`. This file is your compiled file that should be in the same folder where you run make.
 
 ## PIR Library
 - This implementation sets `q=2^{124}, n=4096, t=2^{62}`, where q= coefficient mod, n= polynomial degree, t= plaintext mod. These parameters allow expansion factor of 4.2 only. 
