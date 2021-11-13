@@ -35,7 +35,9 @@
 *.out
 *.app
 
-
+**/cmake-build-release
+**/cmake-build-cmake-remote
+**/.idea
 **/cmake-build-debug
 **/CMakeCache.txt
 **/cmake_install.cmake

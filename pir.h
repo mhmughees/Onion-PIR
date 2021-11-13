@@ -8,7 +8,7 @@
 #define EXTERNAL_PROD_PIR_H
 
 typedef vector<GSWCiphertext> PirQuery;
-#define FIRST_DIM 128
+#define FIRST_DIM 256
 #define DIM 4
 
 struct PirParams {

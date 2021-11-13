@@ -1587,7 +1587,7 @@ void thread_server_expand(vector<GSWCiphertext>::iterator &result, vector<Cipher
     }
     auto rlwe_end = std::chrono::high_resolution_clock::now();
     duration = duration+ duration_cast<std::chrono::milliseconds >(rlwe_end - rlwe_start).count();
-    cout <<"GSW exansion time="<< duration <<" ms"<< endl;
+    //cout <<"GSW exansion time="<< duration <<" ms"<< endl;
 
 
 
