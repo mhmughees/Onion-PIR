@@ -29,7 +29,7 @@ OnionPIR scheme utilizes recent advances in somewhat homomorphic encryption (SHE
 - Then just run `./onionpir`. This file is your compiled file that should be in the same folder where you run make.
 
 ## PIR Library
-- This implementation sets `q=2^{124}, n=4096, t=2^{62}`, where q= coefficient mod, n= polynomial degree, t= plaintext mod. These parameters allow expansion factor of 4.2 only. 
+- This implementation sets `q\approx 2^{124}, n=4096, t\approx 2^{60}`, where q= coefficient mod, n= polynomial degree, t= plaintext mod. These parameters allow expansion factor of 4.2 only. 
 
 - There are a `Server` and `Client` classes with their dedicated operations.
 - `Server.set_database:` Initialize the database.
