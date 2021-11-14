@@ -974,7 +974,7 @@ int main(){
     auto time_query_s = high_resolution_clock::now();
     PirQuery query = client.generate_query_combined(index);
 
-    cout<<"query size ="<< query.size()<< endl;
+    cout<<"Main: query size = "<< query.size()<< endl;
 
     auto time_query_e = high_resolution_clock::now();
     auto time_query_us = duration_cast<microseconds>(time_query_e - time_query_s).count();
@@ -1014,7 +1014,7 @@ int main(){
     cout << "Main: PIRClient query generation time: " << time_query_us / 1000 << " ms" << endl;
     cout << "Main: PIRServer reply generation time: " << time_server_us / 1000 << " ms"
          << endl;
-    cout << "Main: Reply num ciphertexts: " << reply.size() << endl;
+    //cout << "Main: Reply num ciphertexts: " << reply.size() << endl;
 
     return 0;
 }

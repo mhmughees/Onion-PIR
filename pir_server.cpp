@@ -171,11 +171,11 @@ PirReply pir_server::generate_reply(PirQuery query, uint32_t client_id, SecretKe
 
 
     for (uint32_t i = 0; i < 1; i++) {
-        cout << "Server: " << i + 1 << "-th recursion level started " << endl;
+
 
 
         uint64_t n_i = nvec[i];
-        cout << "Server: n_i = " << n_i << endl;
+        cout << "Server: first dim size = " << n_i << endl;
         cout << "Server: expanding " << query[i].size() << " query ctxts" << endl;
 
             uint64_t total = n_i;
@@ -409,8 +409,6 @@ PirReply pir_server::generate_reply_combined(PirQuery query, uint32_t client_id,
 
     }
 
-    auto coeff_count = params_.poly_modulus_degree();
-
 
     vector<Plaintext> intermediate_plain; // decompose....
 
@@ -425,12 +423,10 @@ PirReply pir_server::generate_reply_combined(PirQuery query, uint32_t client_id,
 
 
     for (uint32_t i = 0; i < 1; i++) {
-        cout << "Server: " << i + 1 << "-th recursion level started " << endl;
-
 
         uint64_t n_i = nvec[i];
-        cout << "Server: n_i = " << n_i << endl;
-        cout << "Server: expanding " << query[i].size() << " query ctxts" << endl;
+        cout << "Server: first dimension size  = " << n_i << endl;
+
 
         uint64_t total = n_i;
 
@@ -470,7 +466,7 @@ PirReply pir_server::generate_reply_combined(PirQuery query, uint32_t client_id,
 
         auto end = high_resolution_clock::now();
         int time_server_us =  duration_cast<milliseconds>(end - start).count();
-        cout<<"Rlwe exansion time= "<<time_server_us<<" ms"<<endl;
+        cout<<"Server: rlwe exansion time = "<<time_server_us<<" ms"<<endl;
 
 
         product /= n_i;
@@ -516,7 +512,7 @@ PirReply pir_server::generate_reply_combined(PirQuery query, uint32_t client_id,
         auto expand_end  = high_resolution_clock::now();
 
         durrr =duration_cast<milliseconds>(expand_end - expand_start).count();
-        cout << "First-dimension mul cost:" << durrr  << endl;
+        cout << "Server: first-dimension mul cost = " << durrr << " ms" << endl;
 
 
 
@@ -532,7 +528,7 @@ PirReply pir_server::generate_reply_combined(PirQuery query, uint32_t client_id,
 
         expand_end  = high_resolution_clock::now();
         durrr =  duration_cast<milliseconds>(expand_end - expand_start).count();
-        cout << "INTT after first dimension" << durrr  << endl;
+        cout << "Server: INTT after first dimension = " << durrr << " ms" << endl;
 
 
     }
@@ -578,7 +574,7 @@ PirReply pir_server::generate_reply_combined(PirQuery query, uint32_t client_id,
 
     auto expand_end  = high_resolution_clock::now();
     uint64_t durrr =  duration_cast<milliseconds>(expand_end - expand_start).count();
-    cout << "Expand after first diemension: " << durrr  << endl;
+    cout << "Server: expand after first diemension = " << durrr << " ms" << endl;
 
     auto remaining_start = std::chrono::high_resolution_clock::now();
     //for remaining dimensions we treat them differently
@@ -643,13 +639,13 @@ PirReply pir_server::generate_reply_combined(PirQuery query, uint32_t client_id,
 
     auto remaining_end  = high_resolution_clock::now();
      durrr =  duration_cast<milliseconds>(remaining_end - remaining_start).count();
-     cout << "Remaining-dimensions cost:" << durrr  << endl;
+     cout << "Server: remaining-dimensions dot-products = " << durrr << " ms" << endl;
 
 
 
     auto Total_end  = high_resolution_clock::now();
     durrr =  duration_cast<milliseconds>(Total_end - Total_start).count();
-    cout << "Total+++" << durrr  << endl;
+//    cout << "Total" << durrr  << endl;
 
     return first_dim_intermediate_cts;
 }
