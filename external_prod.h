@@ -178,7 +178,7 @@ GaloisKeys generate_galois_keys(shared_ptr<SEALContext> context, KeyGenerator &k
  */
 void set_bfv_parms(EncryptionParameters &parms);
 
-void set_bfv_parms64(EncryptionParameters &parms,  size_t poly_modulus_degree, uint32_t logt );
+void set_bfv_parms64(EncryptionParameters &parms,  size_t poly_modulus_degree, uint32_t logt, vector<Modulus> q_with_special );
 /*!
  * GSW encryption coeff modulus of 128 bits
  * @param l - number of rows in gsw ciphertexts

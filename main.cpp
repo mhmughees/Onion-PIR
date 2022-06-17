@@ -1116,9 +1116,10 @@ int main_onionpir_small() {
     uint64_t size_per_item = 16000; // in bytes
     size_t N = 8192;
     uint32_t logt = 17;
+    vector<Modulus> q_with_special= {4611686018326724609, 4611686018309947393};
     PirParams pir_params;
     EncryptionParameters bfv_parms(scheme_type::BFV);
-    set_bfv_parms64(bfv_parms, N, logt);
+    set_bfv_parms64(bfv_parms, N, logt, q_with_special);
     set_pir_params64(number_of_items, size_per_item, N, logt,
                  pir_params);
     auto context = SEALContext::Create(bfv_parms);
@@ -1135,7 +1136,7 @@ int main_onionpir_small() {
     for (uint64_t i = 0; i < number_of_items; i++) {
         for (uint64_t j = 0; j < size_per_item; j++) {
 
-            auto val = rd() % 128;
+            auto val =  128;
             db.get()[(i * size_per_item) + j] = val;
             db_copy.get()[(i * size_per_item) + j] = val;
 
@@ -1157,7 +1158,8 @@ int main_onionpir_small() {
     auto time_pre_e = high_resolution_clock::now();
     auto time_pre_us = duration_cast<microseconds>(time_pre_e - time_pre_s).count();
 
-    uint64_t ele_index = rd() % number_of_items; // element in DB at random position
+    //uint64_t ele_index = rd() % number_of_items; // element in DB at random position
+    uint64_t ele_index = 1;
     uint64_t index = client.get_fv_index(ele_index, size_per_item);   // index of FV plaintext
     uint64_t offset = client.get_fv_offset(ele_index, size_per_item);
     cout << "Main: element index = " << ele_index << " from [0, " << number_of_items - 1 << "]" << endl;

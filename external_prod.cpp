@@ -23,16 +23,12 @@ void set_bfv_parms(EncryptionParameters &parms) {
 }
 
 
-void set_bfv_parms64(EncryptionParameters &parms,  size_t poly_modulus_degree, uint32_t logt ) {
-
-
-
+void set_bfv_parms64(EncryptionParameters &parms,  size_t poly_modulus_degree, uint32_t logt, vector<Modulus> q_with_special ) {
     parms.set_poly_modulus_degree(poly_modulus_degree);
     parms.set_plain_modulus(PlainModulus::Batching(poly_modulus_degree, logt));
-
     //we use special CRT components of coeff mod that are compatible with nfllib
     //parms.set_coeff_modulus({1073479681, 1072496641,1071513601});
-    parms.set_coeff_modulus({4611686018326724609, 4611686018309947393});
+    parms.set_coeff_modulus(q_with_special);
 }
 
 
