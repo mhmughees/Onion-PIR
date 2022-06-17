@@ -50,7 +50,7 @@ inline void print_parameters(std::shared_ptr<seal::SEALContext> context)
     {
         throw std::invalid_argument("context is not set");
     }
-    auto &context_data = *context->key_context_data();
+    auto &context_data = *context->first_context_data();
 
     /*
     Which scheme are we using?

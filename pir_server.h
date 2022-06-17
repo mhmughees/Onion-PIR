@@ -28,9 +28,11 @@ public:
     // Caller cannot free db
     PirReply generate_reply(PirQuery query, uint32_t client_id, SecretKey sk);
     PirReply generate_reply_combined(PirQuery query, uint32_t client_id, SecretKey sk);
+    PirReply generate_reply_combined64(PirQuery query, uint32_t client_id, SecretKey sk);
     void set_enc_sk(GSWCiphertext sk_enc);
 
     void preprocess_database();
+    void preprocess_database64();
 private:
     seal::EncryptionParameters params_; // SEAL parameters
     PirParams pir_params_;// PIR parameters

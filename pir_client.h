@@ -19,6 +19,7 @@ public:
     PirQuery generate_query(std::uint64_t desiredIndex);
 
     PirQuery generate_query_combined(std::uint64_t desiredIndex);
+    PirQuery generate_query_combined64(std::uint64_t desiredIndex);
 
     PirQuery generate_perm_query(std::uint64_t desiredIndex);
     void compute_inverse_scales();

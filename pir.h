@@ -41,6 +41,9 @@ std::uint64_t plaintexts_per_db(std::uint64_t logtp, std::uint64_t N, std::uint6
 void gen_params(uint64_t ele_num, uint64_t ele_size, uint32_t N, uint64_t logt,
         PirParams &pir_param);
 
+void set_pir_params64(uint64_t ele_num, uint64_t ele_size, uint32_t N, uint64_t logt,
+                PirParams &pir_param);
+
 // Converts an array of bytes to a vector of coefficients, each of which is less
 // than the plaintext modulus
 std::vector<std::uint64_t> bytes_to_coeffs(std::uint64_t limit, const std::uint8_t *bytes,
