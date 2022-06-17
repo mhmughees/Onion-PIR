@@ -1,7 +1,8 @@
 # OnionPIR: Response-Efficient Single-Server Private Information Retrieval
 This repository contains code for [OnionPIR: Response Efficient Single-Server PIR](https://eprint.iacr.org/2021/1081) 
 
---over the course of next few weeks this library will be updated to become more stable 
+Note that OnionPIR protocol can be implemented using different parameters selection. In paper we disccussed one such selection that showed best results but we can optimize OninPIR design by picking different parameters. Check branch [small-onionpir](https://github.com/mhmughees/Onion-PIR/tree/mughees/small-onionpir) for one extra example.
+
 
 ### Dependencies
 - [Microsoft Seal version 3.5](https://github.com/microsoft/SEAL/tree/3.5.0)
