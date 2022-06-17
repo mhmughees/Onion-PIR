@@ -1,7 +1,8 @@
 # OnionPIR: Response-Efficient Single-Server Private Information Retrieval
 This repository contains code for [OnionPIR: Response Efficient Single-Server PIR](https://eprint.iacr.org/2021/1081) 
 
---over the course of next few weeks this library will be updated to become more stable 
+Note that in this branch N = 8192, log q = {62,62} , log t = 17 bits providing more than 128 bits of security for ciphertexts and rotation and relinearization keys
+
 
 ### Dependencies
 - [Microsoft Seal version 3.5](https://github.com/microsoft/SEAL/tree/3.5.0)
